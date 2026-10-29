@@ -1,0 +1,68 @@
+name: 드라이브 이미지 자동 업데이트
+
+on:
+  schedule:
+    # 매일 오전 8시 (한국 시간) 실행
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+    # 수동 실행 버튼도 제공
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Python 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install google-api-python-client google-auth
+
+      - name: 드라이브 스캔 & HTML 업데이트
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python update_map.py
+
+      - name: 변경사항 확인
+        id: check_changes
+        run: |
+          git diff --quiet index.html && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: 변경사항 커밋 & 푸시
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "자동 업데이트: 드라이브 이미지 반영 $(date +'%Y-%m-%d')"
+          git push
+
+      - name: 완료 이메일 발송 (변경사항 있을 때만)
+        if: steps.check_changes.outputs.changed == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "✅ 성공사례 지도 자동 업데이트 완료"
+          to: helpup001@gmail.com
+          from: 성공사례 지도 알림
+          body: |
+            안녕하세요!
+
+            Google Drive에 새로운 이미지가 감지되어 성공사례 지도가 자동으로 업데이트됐습니다.
+
+            확인하기: https://helpup001-hub.github.io/success-map/
+
+            업데이트 일시: ${{ github.run_id }}
+
+      - name: 변경사항 없음 알림
+        if: steps.check_changes.outputs.changed == 'false'
+        run: echo "드라이브에 새 이미지가 없어 업데이트하지 않았습니다."
+        
