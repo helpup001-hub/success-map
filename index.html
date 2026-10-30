@@ -768,8 +768,6 @@
     {
       key: "busan", name: "부산광역시", x: 80, y: 72,
       cases: [
-        { url: "https://cdn.imweb.me/upload/S20230711dbff749aea5a3/04df51d5d7e18.jpeg" },
-        { url: "https://cdn.imweb.me/upload/S20230711dbff749aea5a3/dd3e0bb2e2999.jpeg" },
                 /* DRIVE_AUTO_START:busan */
         { url: "https://drive.google.com/thumbnail?id=1_x7mUoqahxQxPx8QHwbwdvCPHfb2iTBh&sz=w1000" },
         { url: "https://drive.google.com/thumbnail?id=1lXHnUnU49f0UbuN8LwnCSngH5w3ysoFy&sz=w1000" },
@@ -840,9 +838,18 @@
 
   const ALL_CASES = REGIONS.reduce(function(a, r) { return a.concat(r.cases); }, []);
 
+  /* ===== 지역 정렬: 경기 맨 위, 제주 맨 아래, 나머지 가나다순 ===== */
+  var sortedRegions = REGIONS.slice().sort(function(a, b) {
+    if (a.key === 'gyeonggi') return -1;
+    if (b.key === 'gyeonggi') return 1;
+    if (a.key === 'jeju') return 1;
+    if (b.key === 'jeju') return -1;
+    return a.name.localeCompare(b.name, 'ko');
+  });
+
   /* ===== 지역 리스트 ===== */
   const listEl = document.getElementById('rq-region-list');
-  listEl.innerHTML = REGIONS.map(function(r) {
+  listEl.innerHTML = sortedRegions.map(function(r) {
     var badge = r.count > 0
       ? '<span class="rq-region-update">UPDATE</span>'
       : '';
