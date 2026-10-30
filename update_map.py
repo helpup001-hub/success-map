@@ -76,6 +76,20 @@ def get_drive_service():
     )
     return build("drive", "v3", credentials=creds)
 
+# 지자체 폴더명 정규화 (시/군/구 제거, 괄호 내용 제거 등)
+def normalize_area(name):
+    """Drive 폴더명 → index.html 탭 이름으로 정규화"""
+    # 괄호 및 내용 제거: "강원 기타(양양,삼척,동해)" → "강원 기타" → "기타"
+    name = re.sub(r'\([^)]*\)', '', name).strip()
+    # 앞에 지역명 접두어 제거: "강원 기타" → "기타"
+    for region in ["강원", "경기", "충남", "충북", "전남", "전북", "경남", "경북", "제주", "서울", "부산", "대구", "인천", "광주", "대전", "울산", "세종"]:
+        if name.startswith(region + " "):
+            name = name[len(region)+1:].strip()
+    # 시/군/구 접미어 제거: "강릉시" → "강릉", "영광군" → "영광"
+    if len(name) > 2 and name[-1] in ("시", "군", "구"):
+        name = name[:-1]
+    return name
+
 # ── Drive 유틸 ────────────────────────────────────────────────────────────────
 
 def list_children(service, folder_id):
@@ -122,8 +136,8 @@ def scan_drive(service):
                     # 지역 폴더
                     walk(item["id"], region_key=REGION_KEY_MAP[name], area=None)
                 elif region_key is not None and area is None:
-                    # 지자체 폴더 (지역 바로 아래)
-                    walk(item["id"], region_key=region_key, area=name)
+                    # 지자체 폴더 (지역 바로 아래) — 이름 정규화
+                    walk(item["id"], region_key=region_key, area=normalize_area(name))
                 else:
                     # 연도 폴더 등 — 통과
                     walk(item["id"], region_key=region_key, area=area)
@@ -195,6 +209,14 @@ def main():
     print(f"\n📝 {HTML_FILE} 업데이트 중...")
     with open(HTML_FILE, "r", encoding="utf-8") as f:
         html = f.read()
+
+    # index.html에 존재하는 DRIVE_AUTO 마커 중 Drive에서 0개인 지역도 빈 블록으로 교체
+    for key in REGION_KEY_MAP.values():
+        if key not in drive_cases:
+            start_tag = START.format(key=key)
+            if start_tag in html:
+                drive_cases[key] = []
+                print(f"  {key}: 0개 이미지 (블록 비움)")
 
     html = patch_html(html, drive_cases)
 
