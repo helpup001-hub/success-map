@@ -97,7 +97,8 @@ def list_children(service, folder_id):
     while True:
         resp = service.files().list(
             q=f"'{folder_id}' in parents and trashed = false",
-            fields="nextPageToken, files(id, name, mimeType)",
+            fields="nextPageToken, files(id, name, mimeType, createdTime)",
+            orderBy="createdTime",
             pageToken=page_token,
             pageSize=1000,
         ).execute()
