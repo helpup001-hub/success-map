@@ -23,8 +23,9 @@ ROOT_FOLDER_ID = "1Gbve23pAgAxQdznqYP_chtxLfMcVoVpd"
 HTML_FILE = "index.html"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 
-# 지역 폴더명 → REGIONS key 매핑
+# 지역 폴더명 → REGIONS key 매핑 (전체 이름 + 약칭 모두 지원)
 REGION_KEY_MAP = {
+    # 전체 이름
     "경기도":        "gyeonggi",
     "강원도":        "gangwon",
     "충청북도":      "chungbuk",
@@ -42,6 +43,24 @@ REGION_KEY_MAP = {
     "울산광역시":    "ulsan",
     "세종특별자치시": "sejong",
     "서울특별시":    "seoul",
+    # 약칭
+    "경기":  "gyeonggi",
+    "강원":  "gangwon",
+    "충북":  "chungbuk",
+    "충남":  "chungnam",
+    "전북":  "jeonbuk",
+    "전남":  "jeonnam",
+    "경북":  "gyeongbuk",
+    "경남":  "gyeongnam",
+    "제주":  "jeju",
+    "부산":  "busan",
+    "대구":  "daegu",
+    "인천":  "incheon",
+    "광주":  "gwangju",
+    "대전":  "daejeon",
+    "울산":  "ulsan",
+    "세종":  "sejong",
+    "서울":  "seoul",
 }
 
 # ── Drive API 초기화 ───────────────────────────────────────────────────────────
